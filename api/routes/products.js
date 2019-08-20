@@ -3,6 +3,31 @@
 /* eslint-disable no-console */
 /* eslint-disable no-unused-vars */
 const express = require("express");
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, "./uploads/");
+  },
+  filename: function(req, file, cb) {
+    cb(null, new Date().toISOString() + file.originalname);
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5
+  }
+});
 
 const router = express.Router();
 
@@ -11,7 +36,7 @@ const Product = require("../models/product");
 
 router.get("/", (request, response, next) => {
   Product.find()
-    .select("name price _id")
+    .select("name price _id productImage")
     .exec()
     .then(docs => {
       console.log(docs);
@@ -38,16 +63,13 @@ router.get("/", (request, response, next) => {
     });
 });
 
-router.post("/", (request, response, next) => {
-  // const product = {
-  //   name: request.body.name,
-  //   price: request.body.price,
-  // };
-
+router.post("/", upload.single("productImage"), (request, response, next) => {
+  console.log(request.file);
   const product = new Product({
     _id: new mongoose.Types.ObjectId(),
     name: request.body.name,
-    price: request.body.price
+    price: request.body.price,
+    productImage: request.file.path
   });
 
   product

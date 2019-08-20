@@ -35,6 +35,9 @@ mongoose.connect(
 // Configuring morgan for logging.
 app.use(morgan("dev"));
 
+// Making the uploads folder static
+app.use("/uploads", express.static("uploads"));
+
 // Configuration: body parser.
 app.use(
   bodyParser.urlencoded({
